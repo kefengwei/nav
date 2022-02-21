@@ -1,14 +1,15 @@
-// Copyright @ 2018-2021 xiejiahe. All rights reserved. MIT license.
+// Copyright @ 2018-2022 xiejiahe. All rights reserved. MIT license.
 // See https://github.com/xjh22222228/nav
 
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core'
-import { getLogoUrl, getTextContent } from '../../utils'
+import { getLogoUrl, getTextContent } from 'src/utils'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms'
-import { ITagProp, INavFourProp } from '../../types'
+import { ITagProp, INavFourProp } from 'src/types'
 import { NzMessageService } from 'ng-zorro-antd/message'
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import * as __tag from '../../../data/tag.json'
-import { createFile } from '../../services'
+import { createFile } from 'src/services'
+import { $t } from 'src/locale'
 
 const tagMap: ITagProp = (__tag as any).default
 const tagKeys = Object.keys(tagMap)
@@ -24,6 +25,7 @@ export class CreateWebComponent implements OnInit {
   @Output() onCancel = new EventEmitter()
   @Output() onOk = new EventEmitter()
 
+  $t = $t
   validateForm!: FormGroup;
   iconUrl = ''
   urlArr = []
@@ -42,6 +44,7 @@ export class CreateWebComponent implements OnInit {
       title: ['', [Validators.required]],
       url: ['', [Validators.required]],
       top: [false],
+      ownVisible: [false],
       rate: [5],
       url0: [''],
       url1: [''],
@@ -68,6 +71,7 @@ export class CreateWebComponent implements OnInit {
         this.validateForm.get('icon')!.setValue(detail.icon || '')
         this.validateForm.get('url')!.setValue(detail.url || '')
         this.validateForm.get('top')!.setValue(detail.top ?? false)
+        this.validateForm.get('ownVisible')!.setValue(detail.ownVisible ?? false)
         this.validateForm.get('rate')!.setValue(detail.rate ?? 5)
   
         if (typeof detail.urls === 'object') {
@@ -86,8 +90,8 @@ export class CreateWebComponent implements OnInit {
   async onUrlBlur(e) {
     const res = await getLogoUrl(e.target?.value)
     if (res) {
-      this.iconUrl = (res || '') as string
-      this.validateForm.get('icon')!.setValue(res || '')
+      this.iconUrl = res as string
+      this.validateForm.get('icon')!.setValue(this.iconUrl)
     }
   }
 
@@ -109,34 +113,32 @@ export class CreateWebComponent implements OnInit {
   }
 
   handlePasteImage = event => {
-    const items = event.clipboardData?.items
+    const items = event.clipboardData.items
     let file = null
-    let suffix = ''
 
     if (items.length) {
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.startsWith('image')) {
           file = items[i].getAsFile()
-          suffix = file.type.split('/').pop()
           break;
         }
       }
     }
 
     if (file) {
-      this.handleUploadImage(file, suffix)
+      this.handleUploadImage(file)
     }
   }
 
-  handleUploadImage(file: Blob, suffix: string) {
+  handleUploadImage(file: File) {
     const that = this
     const fileReader = new FileReader()
     fileReader.readAsDataURL(file)
     fileReader.onload = function() {
       that.uploading = true
       that.iconUrl = this.result as string
-      const url = (this.result as string).split(',')[1]
-      const path = `nav-${Date.now()}.${suffix}`
+      const url = that.iconUrl.split(',')[1]
+      const path = `nav-${Date.now()}-${file.name}`
 
       createFile({
         branch: 'image',
@@ -146,11 +148,11 @@ export class CreateWebComponent implements OnInit {
         path
       }).then(() => {
         that.validateForm.get('icon')!.setValue(path)
-        that.message.success('上传成功')
+        that.message.success($t('_uploadSuccess'))
       }).catch(res => {
         that.notification.error(
-          `错误: ${res?.response?.status ?? 401}`,
-          '上传失败，请重试！'
+          `${$t('_error')}: ${res?.response?.status ?? 401}`,
+          $t('_uploadFail')
         )
       }).finally(() => {
         that.uploading = false
@@ -162,12 +164,11 @@ export class CreateWebComponent implements OnInit {
     const { files } = e.target
     if (files.length <= 0) return;
     const file = files[0]
-    const suffix = file.type.split('/').pop()
 
     if (!file.type.startsWith('image')) {
-      return this.message.error('请不要上传非法图片')
+      return this.message.error($t('_notUpload'))
     }
-    this.handleUploadImage(file, suffix)
+    this.handleUploadImage(file)
   }
 
   handleCancel() {
@@ -187,6 +188,7 @@ export class CreateWebComponent implements OnInit {
       icon,
       url,
       top,
+      ownVisible,
       rate,
       desc,
       url0,
@@ -217,6 +219,7 @@ export class CreateWebComponent implements OnInit {
       rate: rate ?? 0,
       desc: desc || '',
       top: top ?? false,
+      ownVisible: ownVisible ?? false,
       icon,
       url,
       urls

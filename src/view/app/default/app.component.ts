@@ -1,11 +1,10 @@
-// Copyright @ 2018-2021 xiejiahe. All rights reserved. MIT license.
+// Copyright @ 2018-2022 xiejiahe. All rights reserved. MIT license.
 
 import { Component } from '@angular/core'
 import { Router, ActivatedRoute } from '@angular/router'
 import { queryString } from '../../../utils'
 import { INavProps } from '../../../types'
-import { websiteList } from '../../../store'
-import { LOGO_CDN } from '../../../constants'
+import { websiteList, settings } from '../../../store'
 
 @Component({
   selector: 'app-home',
@@ -17,7 +16,7 @@ export default class WebpComponent {
   id: number = 0
   page: number = 0
   open: boolean = false
-  LOGO_CDN = LOGO_CDN
+  LOGO_CDN = settings.favicon
 
   constructor (private router: Router, private activatedRoute: ActivatedRoute) {}
 

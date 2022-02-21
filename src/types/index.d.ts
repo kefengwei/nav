@@ -1,4 +1,4 @@
-// Copyright @ 2018-2021 xiejiahe. All rights reserved. MIT license.
+// Copyright @ 2018-2022 xiejiahe. All rights reserved. MIT license.
 // See https://github.com/xjh22222228/nav
 
 export type ThemeType =
@@ -6,23 +6,31 @@ export type ThemeType =
   | 'Sim'
   | 'Side'
   | 'App'
+  | 'Shortcut'
+
+
+export interface ITagPropValues {
+  name?: string
+  color: string
+  createdAt: string
+  desc: string
+  isInner: boolean
+}
 
 export interface ITagProp {
-  [tagName: string]: {
-    color: string
-    createdAt: string
-    desc?: string
-  }
+  [tagName: string]: ITagPropValues
 }
 
 export interface INavFourProp {
-  icon?: string | null
-  createdAt?: string
-  rate?: number
-  top?: boolean
   name: string
   desc: string
   url: string
+  icon?: string | null
+  createdAt?: string
+  rate?: number // 0-5
+  top?: boolean
+  index?: number // sort
+  ownVisible?: boolean
   urls?: {
     [tagName: string]: string
   }
@@ -33,6 +41,7 @@ export interface INavThreeProp {
   icon?: string | null
   createdAt?: string
   collapsed?: boolean
+  ownVisible?: boolean
   nav: INavFourProp[]
 }
 
@@ -41,6 +50,7 @@ export interface INavTwoProp {
   icon?: string | null
   createdAt?: string
   collapsed?: boolean
+  ownVisible?: boolean
   nav: INavThreeProp[]
 }
 
@@ -49,6 +59,7 @@ export interface INavProps extends Object {
   id?: number
   icon?: string | null
   createdAt?: string
+  ownVisible?: boolean
   nav: INavTwoProp[]
 }
 
@@ -58,12 +69,13 @@ export interface ISearchEngineProps {
   icon: string | null
   placeholder?: string
   blocked: boolean
+  isInner: boolean
 }
 
-export interface IConfig {
-  gitRepoUrl: string
-  branch: string
-  hashMode: boolean
+export interface ISettings {
+  favicon: string
+  language: 'zh-CN' | 'en'
+  loading: string
   homeUrl?: string
   title: string
   description: string
@@ -72,14 +84,28 @@ export interface IConfig {
   footerContent?: string|null
   baiduStatisticsUrl?: string
   cnzzStatisticsUrl?: string
+  iconfontUrl?: string
   showGithub: boolean
+  showLanguage: boolean
 
-  lightThemeConfig: {
-    backgroundLinear: string[]
-  },
+  simThemeImages: Record<string, string>[]
+  simThemeDesc: string
+  simThemeHeight: number
+  simThemeAutoplay: boolean
 
-  simThemeConfig: {
-    posterImageUrls: string[]
-    description: string
-  }
+  sideThemeImages: Record<string, string>[]
+  sideThemeHeight: number
+  sideThemeAutoplay: boolean
+
+  shortcutThemeImages: Record<string, string>[]
+  shortcutThemeShowWeather: boolean
+
+  showRate: boolean
+  mirrorList: Record<string, string>[]
+}
+
+export interface IConfig {
+  gitRepoUrl: string
+  branch: string
+  hashMode: boolean
 }

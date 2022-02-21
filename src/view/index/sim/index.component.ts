@@ -1,53 +1,45 @@
-// Copyright @ 2018-2021 xiejiahe. All rights reserved. MIT license.
+// Copyright @ 2018-2022 xiejiahe. All rights reserved. MIT license.
 
 import config from '../../../../nav.config'
 import { Component } from '@angular/core'
 import { Router, ActivatedRoute } from '@angular/router'
-import { INavProps, INavThreeProp } from '../../../types'
+import { INavProps, INavThreeProp } from 'src/types'
 import {
   fuzzySearch,
   queryString,
   setWebsiteList,
   toggleCollapseAll,
   totalWeb,
-} from '../../../utils'
-import { initRipple, setAnnotate } from '../../../utils/ripple'
-import { websiteList } from '../../../store'
+  matchCurrentList
+} from 'src/utils'
+import { isLogin } from 'src/utils/user'
+import { initRipple, setAnnotate } from 'src/utils/ripple'
+import { websiteList } from 'src/store'
+import { settings } from 'src/store'
 
-const { gitRepoUrl, title, simThemeConfig } = config
 let sidebarEl: HTMLElement;
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-sim',
   templateUrl: './index.component.html',
   styleUrls: ['./index.component.scss']
 })
-export default class HomeComponent {
-
-  constructor (private router: Router, private activatedRoute: ActivatedRoute) {}
-
+export default class SimComponent {
   websiteList: INavProps[] = websiteList
   currentList: INavThreeProp[] = []
   id: number = 0
   page: number = 0
-  gitRepoUrl: string = gitRepoUrl
-  title: string = title
-  posterImageUrls?: string = simThemeConfig.posterImageUrls[0]
-  description: string = simThemeConfig.description.replace('${total}', String(totalWeb()))
+  gitRepoUrl: string = config.gitRepoUrl
+  title: string = settings.title
+  simThemeImages = settings.simThemeImages
+  simThemeHeight = settings.simThemeHeight
+  simThemeAutoplay = settings.simThemeAutoplay
+  description: string = settings.simThemeDesc.replace('${total}', String(totalWeb()))
+  isLogin = isLogin
+
+  constructor (private router: Router, private activatedRoute: ActivatedRoute) {}
 
   ngOnInit() {
-    const initList = () => {
-      try {
-        if (this.websiteList[this.page] && this.websiteList[this.page]?.nav?.length > 0) {
-          this.currentList = this.websiteList[this.page].nav[this.id].nav
-        } else {
-          this.currentList = []
-        }
-      } catch (error) {
-        this.currentList = []
-      }
-    }
-
     this.activatedRoute.queryParams.subscribe(() => {
       const tempPage = this.page
       const { id, page, q } = queryString()
@@ -57,7 +49,7 @@ export default class HomeComponent {
       if (q) {
         this.currentList = fuzzySearch(this.websiteList, q)
       } else {
-        initList()
+        this.currentList = matchCurrentList()
       }
 
       if (tempPage !== page) {
@@ -68,6 +60,12 @@ export default class HomeComponent {
     })
   }
 
+  handleJumpUrl(data) {
+    if (data.url) {
+      window.open(data.url)
+    }
+  }
+
   onScroll = () => {
     const y = window.scrollY
     if (!sidebarEl) {
@@ -75,7 +73,7 @@ export default class HomeComponent {
     }
 
     if (sidebarEl) {
-      const height = this.posterImageUrls ? 438 : 10
+      const height = settings.simThemeHeight + 138
       if (y >= height) {
         sidebarEl.classList.add('fix')
       } else {
